@@ -25,7 +25,14 @@ app.use(express.static(__dirname + '/public'));
 
 app.get('/', 
 function(req, res) {
-  res.render('index');
+  // console.log('---------------------------------req: ', Object.keys(req));
+  res.redirect('/login');
+
+});
+
+app.get('/login', function(req, res){
+  // console.log("*******************", Object.keys(req));
+  res.render('login');
 });
 
 app.get('/create', 
@@ -52,6 +59,7 @@ function(req, res) {
   new Link({ url: uri }).fetch().then(function(found) {
     if (found) {
       res.send(200, found.attributes);
+      // console.log('--------------------------------found.attributes: ', found.attributes);
     } else {
       util.getUrlTitle(uri, function(err, title) {
         if (err) {
@@ -78,7 +86,32 @@ function(req, res) {
 // Write your dedicated authentication routes here
 // e.g. login, logout, etc.
 /************************************************************/
+app.post('/login', function(req, res) {
 
+  console.log('----------------------------req', req.body);
+
+  // look for user in user table
+  // if user exists, create new request object
+  new User({ username: req.body.username, password: req.body.password }).fetch().then(function(found) {
+
+      if (found) {
+        res.send(200, found.attributes);
+      }
+      else {
+        console.log('--------------------------------found.attributes: ', found.attributes);
+
+        var user = new User({
+          username: req.body.username,
+          password: req.body.password
+        });
+
+        user.save().then(function(newUser) {
+          Users.add(newUser);
+          res.send(200, newUser);
+        });
+      }
+    });
+});
 
 
 /************************************************************/
