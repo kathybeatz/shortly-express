@@ -99,7 +99,7 @@ app.post('/login', function(req, res) {
   new User({ username: req.body.username, password: req.body.password }).fetch().then(function(found) {
 
       if (found) {
-        res.redirect('/index');
+        res.redirect('/');
       }
       else { // if user doesn't exist, create new user
         console.log('--------------------------------found.attributes: ', found.attributes);
@@ -121,7 +121,7 @@ app.post('/login', function(req, res) {
 // post for new account creation
 app.post('/signup', function(req, res) {
 
-  console.log('--------------------------------res: ', Object.keys(res));
+  console.log('--------------------------------res');
 
   // create new user
   var user = new User({

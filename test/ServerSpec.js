@@ -255,14 +255,14 @@ describe('', function() {
       });
     });
   }); // 'Account Creation'
-  xdescribe('Account Login:', function(){
+  describe('Account Login:', function(){
     var requestWithSession = request.defaults({jar: true});
     beforeEach(function(done){
       new User({
           'username': 'Phillip',
           'password': 'Phillip'
       }).save().then(function(){
-        done()
+        done();
       });
     })
     it('Logs in existing users', function(done) {
