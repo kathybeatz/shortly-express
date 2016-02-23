@@ -95,7 +95,7 @@ app.post('/login', function(req, res) {
   new User({ username: req.body.username, password: req.body.password }).fetch().then(function(found) {
 
       if (found) {
-        res.send(200, found.attributes);
+        res.redirect('/index');
       }
       else {
         console.log('--------------------------------found.attributes: ', found.attributes);
@@ -108,6 +108,7 @@ app.post('/login', function(req, res) {
         user.save().then(function(newUser) {
           Users.add(newUser);
           res.send(200, newUser);
+          // redirect to signup page
         });
       }
     });
