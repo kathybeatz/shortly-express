@@ -92,12 +92,13 @@ app.post('/login', function(req, res) {
 
   // look for user in user table
   // if user exists, create new request object
+
   new User({ username: req.body.username, password: req.body.password }).fetch().then(function(found) {
 
       if (found) {
         res.redirect('/index');
       }
-      else {
+      else { // if user doesn't exist, create new user
         console.log('--------------------------------found.attributes: ', found.attributes);
 
         var user = new User({
@@ -107,7 +108,7 @@ app.post('/login', function(req, res) {
 
         user.save().then(function(newUser) {
           Users.add(newUser);
-          res.send(200, newUser);
+          res.send(201, newUser);
           // redirect to signup page
         });
       }
