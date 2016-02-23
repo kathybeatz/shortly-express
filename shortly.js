@@ -121,7 +121,7 @@ app.post('/login', function(req, res) {
 // post for new account creation
 app.post('/signup', function(req, res) {
 
-  console.log('--------------------------------req: ', req.body);
+  console.log('--------------------------------res: ', Object.keys(res));
 
   // create new user
   var user = new User({
@@ -131,6 +131,7 @@ app.post('/signup', function(req, res) {
 
   user.save().then(function(newUser) {
     Users.add(newUser);
+    res.location('/');
     res.send(201, newUser);
     // redirect to index page
   });
