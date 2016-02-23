@@ -27,7 +27,10 @@ app.get('/',
 function(req, res) {
   // console.log('---------------------------------req: ', Object.keys(req));
   res.redirect('/login');
+});
 
+app.get('/signup', function(req, res) {
+  res.render('signup');
 });
 
 app.get('/login', function(req, res){
@@ -91,7 +94,7 @@ app.post('/login', function(req, res) {
   console.log('----------------------------req', req.body);
 
   // look for user in user table
-  // if user exists, create new request object
+  // if user exists, redirect to /index
 
   new User({ username: req.body.username, password: req.body.password }).fetch().then(function(found) {
 
@@ -113,6 +116,25 @@ app.post('/login', function(req, res) {
         });
       }
     });
+});
+
+// post for new account creation
+app.post('/signup', function(req, res) {
+
+  console.log('--------------------------------req: ', req.body);
+
+  // create new user
+  var user = new User({
+    username: req.body.username,
+    password: req.body.password
+  });
+
+  user.save().then(function(newUser) {
+    Users.add(newUser);
+    res.send(201, newUser);
+    // redirect to index page
+  });
+
 });
 
 

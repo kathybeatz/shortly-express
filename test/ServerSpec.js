@@ -213,7 +213,7 @@ describe('', function() {
       });
     });
   }); // 'Priviledged Access'
-  xdescribe('Account Creation:', function(){
+  describe('Account Creation:', function(){ // work on this first
     it('Signup creates a user record', function(done) {
       var options = {
         'method': 'POST',
