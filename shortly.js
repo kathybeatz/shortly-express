@@ -3,6 +3,8 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 
+// require express session
+var session = require('express-session');
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -22,36 +24,31 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+// use sessions
+app.use(session({
+  secret: 'shhh, it\'s a secret',
+  resave: false,
+  saveUninitialized: true
+}));
 
-app.get('/', 
-function(req, res) {
-  // console.log('---------------------------------req: ', Object.keys(req));
-  res.redirect('/login');
+// protected site
+app.get('/', util.checkUser, function(req, res) {
+  res.redirect('index');
 });
 
-app.get('/signup', function(req, res) {
-  res.render('signup');
-});
-
-app.get('/login', function(req, res){
-  // console.log("*******************", Object.keys(req));
-  res.render('login');
-});
-
-app.get('/create', 
-function(req, res) {
+// protected site
+app.get('/create', util.checkUser, function(req, res) {
   res.render('index');
 });
 
-app.get('/links', 
-function(req, res) {
+// protected site
+app.get('/links', util.checkUser, function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
 });
 
-app.post('/links', 
-function(req, res) {
+app.post('/links', util.checkUser, function(req, res) {
   var uri = req.body.url;
 
   if (!util.isValidUrl(uri)) {
@@ -89,39 +86,44 @@ function(req, res) {
 // Write your dedicated authentication routes here
 // e.g. login, logout, etc.
 /************************************************************/
-app.post('/login', function(req, res) {
-
+app.get('/login', function(req, res) {
   console.log('----------------------------req', req.body);
+  res.render('login');
+});
 
-  // look for user in user table
-  // if user exists, redirect to /index
+app.post('/login', function(req, res){
+  var username = req.body.username;
+  var password = req.body.password;
 
-  new User({ username: req.body.username, password: req.body.password }).fetch().then(function(found) {
-
-      if (found) {
-        res.redirect('/');
-      }
-      else { // if user doesn't exist, create new user
-        console.log('--------------------------------found.attributes: ', found.attributes);
-
-        var user = new User({
-          username: req.body.username,
-          password: req.body.password
-        });
-
-        user.save().then(function(newUser) {
-          Users.add(newUser);
-          res.send(201, newUser);
-          // redirect to signup page
+  newUser({ username: username })
+    .fetch()
+    .then( function(user) {
+      if( !user ) {
+        res.redirect('/login');
+      } else {
+        user.comparePassword(password, function(match) {
+          if( match ) {
+            util.createSession( req, res, user );
+          } else {
+            res.redirect('/login');
+          }
         });
       }
     });
 });
 
+app.get('/logout', function(req, res) {
+  req.session.destroy(function() {
+    res.redirect('/login');
+  });
+});
+
+app.get('/signup', function(req, res) {
+  res.render('signup');
+});
+
 // post for new account creation
 app.post('/signup', function(req, res) {
-
-  console.log('--------------------------------res');
 
   // create new user
   var user = new User({
@@ -129,13 +131,25 @@ app.post('/signup', function(req, res) {
     password: req.body.password
   });
 
-  user.save().then(function(newUser) {
-    Users.add(newUser);
-    res.location('/');
-    res.send(201, newUser);
-    // redirect to index page
-  });
-
+  new User({ username: username })
+    .fetch()
+    .then(function(user) {
+      if (!user) {
+        var newUser = new User({
+          username: username,
+          password: password
+        });
+        newUser.save()
+          .then(function(newUser) {
+            util.createSession(req, res, newUser);
+            Users.add(newUser);
+          });
+      }
+      else {
+        console.log('Account already exists');
+        res.redirect('/signup');
+      }
+    });
 });
 
 
